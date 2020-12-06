@@ -1,18 +1,14 @@
 import Data.Maybe
+import Data.List
 
 main :: IO()
 main =
-  getInput "/tmp/aoc1" >>= (\ xs ->
-    putStrLn $ extractValue $ filter isJust $ find2020Product <$> tripleProduct xs xs xs)
-
-
-input = [1721,979,366,299,675,1456]
+  getInput "/tmp/aoc1" >>= putStrLn . show . product . fromJust . (find isSum2020) . tripleProduct
 
 crossProduct left right = sequence [left, right]
-tripleProduct left middle right = sequence [left, middle, right]
+tripleProduct xs = sequence [xs, xs, xs]
 
-find2020Product xs = if (sum xs) == 2020 then Just $ product xs else Nothing
-extractValue = show . fromJust . head
+isSum2020 xs = sum xs == 2020
 
 getInput :: FilePath -> IO [Int]
 getInput f = readFile f >>= return . lines >>= return . (read <$>)
