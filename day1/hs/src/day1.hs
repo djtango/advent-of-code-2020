@@ -1,9 +1,10 @@
 import Data.Maybe
 import Data.List
+import Control.Category hiding ((.))
 
 main :: IO()
 main =
-  getInput "/tmp/aoc1" >>= putStrLn . show . product . fromJust . (find isSum2020) . tripleProduct
+  getInput "/tmp/aoc1" >>= (tripleProduct >>> (find isSum2020) >>> fromJust >>> product >>> show >>> putStrLn)
 
 crossProduct left right = sequence [left, right]
 tripleProduct xs = sequence [xs, xs, xs]
