@@ -113,6 +113,31 @@
        count
        dec))
 
+(defn walk-tree [t]
+  (mapv (fn [x]
+          (if (map? x)
+            (?str->int (:n x))
+            (walk-tree x))) t))
+
+(defn sum-tree [t]
+  (* (first t)
+     (reduce (fn [acc x]
+               (+ acc (sum-tree x)))
+             1
+             (rest t))))
+
+(defn part2 []
+  (->> (slurp "/tmp/aoc7")
+       str/split-lines
+       parse
+       traverse
+       ((fn [x]
+          (get x "shiny gold")))
+       walk-tree
+       ((fn [x] (assoc x 0 1)) )
+       sum-tree
+       ))
+
 (comment (clojure.pprint/pprint (count (keys (part1)))))
 
 (comment
