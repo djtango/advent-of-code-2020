@@ -21,6 +21,8 @@
 (comment (s/exercise ::quantity))
 
 (s/def ::colour (s/+ ::word))
+(comment
+  (s/exercise ::colour))
 (s/def ::amount-of-bags (s/cat :n ::quantity :c ::colour :bags ::bags))
 (comment (try (s/exercise ::colour)
               (catch Throwable t (.printStackTrace t))))
@@ -60,19 +62,92 @@
                     (-> rule
                         (update 1 #(if (= :bags (first %))
                                      (second %)
-                                     []))))]
+                                     []))))
+        clean-colours (fn [[k v]]
+                        [(str/join " " k)
+                         (map (fn [c]
+                                (update c :c #(str/join " " %))) v)])]
     (->> rules
-       (map #(clojure.string/split % #" "))
-       (map #(s/conform ::rule %) )
-       (map ->rule)
-       (map normalise)
-       (into {}))))
+         (map #(clojure.string/split % #" "))
+         (map #(s/conform ::rule %) )
+         (map ->rule)
+         (map normalise)
+         (map clean-colours)
+         (into {}))))
+
+(defn colour-links [rules]
+  (->> rules
+       (map (fn [[k v]] [k (into #{} (map :c v))]))))
+
+(defn traverse [rules]
+  (letfn [(trace [c']
+            (if (empty? (get rules c'))
+              [c']
+              (into [c'] (mapv trace (get rules c')))))]
+    (reduce
+      (fn [nodes colour]
+        (assoc nodes
+               colour
+               (trace colour)))
+      {}
+      (keys rules))))
+
+(defn c [x]
+  (println (count x))
+  x)
+
+(defn mapm [kf vf m]
+  (->> m
+       (map (juxt kf vf))
+       (into {})))
+
+(defn extract-colour [tree]
+  (map (juxt key (comp flatten val)))
+  (into {})
+  (map (juxt key (comp (partial map :c) val)))
+  (into {}))
+
+(defn part1 []
+  (->> (slurp "/tmp/aoc7")
+       str/split-lines
+       parse
+       (mapm key (comp (partial map :c) val))
+       traverse
+       (mapm key (comp flatten val))
+       (filter (comp #(contains? (set %) "shiny gold") val))
+       count
+       dec))
+
+(comment (clojure.pprint/pprint (count (keys (part1)))))
 
 (comment
-  (parse rules)
+  (time (traverse (parse rules))))
+  (traverse
+   {:c1 #{:c2 :c3}
+    :c2 #{:c4}
+    :c3 #{}
+    :c4 #{}}
+   )
+  {:c1 [:c1 [:c2 [:c4]] [:c3]]
+   :c2 [:c2 [:c4]]
+   :c3 [:c3]
+   :c4 [:c4]}
   )
 
 (comment (clojure.pprint/pprint (s/exercise ::rule)))
 
 (defn -main []
   (println "foo"))
+[#{nil ["plaid" "brown"] ["shiny" "gold"] ["drab" "beige"]
+   ["dull" "lime"]}
+ #{nil ["muted" "gold"] ["shiny" "gold"] ["bright" "red"]}
+ #{nil ["muted" "tomato"] ["shiny" "gold"] ["striped" "chartreuse"]}
+ #{nil ["striped" "crimson"] ["shiny" "gold"] ["striped" "red"]}
+ #{nil ["light" "silver"] ["shiny" "gold"] ["dark" "red"]
+   ["faded" "yellow"]}
+ #{nil ["mirrored" "olive"] ["shiny" "gold"]}
+ #{nil ["mirrored" "lavender"] ["vibrant" "indigo"] ["shiny" "gold"]}
+ #{nil ["clear" "cyan"] ["vibrant" "yellow"] ["shiny" "gold"]
+   ["posh" "gray"]}
+ #{nil ["dark" "tomato"] ["shiny" "gold"] ["dim" "orange"]
+   ["plaid" "chartreuse"]}]
