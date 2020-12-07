@@ -81,16 +81,17 @@
 
 (defn traverse [rules]
   (letfn [(trace [c']
-            (if (empty? (get rules c'))
+            (if (empty? (get rules (:c c')))
               [c']
-              (into [c'] (mapv trace (get rules c')))))]
-    (reduce
-      (fn [nodes colour]
-        (assoc nodes
-               colour
-               (trace colour)))
-      {}
-      (keys rules))))
+              (into [c'] (mapv trace (get rules (:c c'))))))]
+    (let [trace* (memoize trace)]
+      (reduce
+       (fn [nodes colour]
+         (assoc nodes
+                colour
+                (trace* {:c colour})))
+       {}
+       (keys rules)))))
 
 (defn c [x]
   (println (count x))
@@ -101,19 +102,13 @@
        (map (juxt kf vf))
        (into {})))
 
-(defn extract-colour [tree]
-  (map (juxt key (comp flatten val)))
-  (into {})
-  (map (juxt key (comp (partial map :c) val)))
-  (into {}))
-
 (defn part1 []
   (->> (slurp "/tmp/aoc7")
        str/split-lines
        parse
-       (mapm key (comp (partial map :c) val))
        traverse
        (mapm key (comp flatten val))
+       (mapm key (comp (partial map :c) val))
        (filter (comp #(contains? (set %) "shiny gold") val))
        count
        dec))
