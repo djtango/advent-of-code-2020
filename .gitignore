@@ -1,2 +1,10 @@
 **/dt_repl
 **/.cpcache
+**/.class
+**/.lst
+**/target
+**/.settings
+**/.project
+**/.classpath
+**/*.o
+**/*.hi
