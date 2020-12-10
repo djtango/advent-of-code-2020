@@ -12,8 +12,12 @@ public class Day8 {
     private static class State{
         public int acc;
         public int cmd;
+        public int arg;
+        public String instruction;
         public ArrayList<Integer> cmds;
         public State() {
+            this.instruction = "";
+            this.arg = 0;
             this.acc = 0;
             this.cmd = 0;
             this.cmds = new ArrayList();
@@ -41,21 +45,26 @@ public class Day8 {
         public int getCmd() {
             return this.cmd;
         }
+
+        public String getInstruction() {
+            return this.instruction;
+        }
+
+        public int getArg() {
+            return this.arg;
+        }
+
+        public void setInstruction(String instruction) {
+            this.instruction = instruction;
+        }
+
+        public void setArg(int arg) {
+            this.arg = arg;
+        }
     }
 
     public State s;
     private static ArrayList<String> getInput() {
-        // String[] ss = {
-        //     "nop +0",
-        //     "acc +1",
-        //     "jmp +4",
-        //     "acc +3",
-        //     "jmp -3",
-        //     "acc -99",
-        //     "acc +1",
-        //     "jmp -4",
-        //     "acc +6"
-        // };
         String[] ss = readFile("/tmp/aoc8").split("\n");
         ArrayList<String> input = new ArrayList();
         int i;
@@ -95,10 +104,53 @@ public class Day8 {
     private boolean isCycle() {
         ArrayList<Integer> cmds = this.s.getCmds();
         int cmd = this.s.getCmd();
+        System.out.println("############## cycle detected ########");
         System.out.println( cmd );
         System.out.println( cmds.indexOf(cmd));
         System.out.println( cmds.lastIndexOf(cmd));
+        System.out.println("############## end cycle detected ########");
         return cmds.lastIndexOf(cmd) != (cmds.indexOf(cmd));
+    }
+
+    private void unJmp(int i) {
+        this.s.setCmd(this.s.getCmd() - i);
+    }
+
+    private void unAcc(int i) {
+        this.s.setAcc(this.s.getAcc() - i);
+        this.s.setCmd(this.s.getCmd() - 1);
+    }
+
+    private void unNop(int i) {
+        this.s.setCmd(this.s.getCmd() - 1);
+    }
+
+    private void rewind() {
+        ArrayList<Integer> cmds = this.s.getCmds();
+        cmds.remove(cmds.size() - 1);
+        switch (this.s.getInstruction()) {
+            case "jmp": this.unJmp(this.s.getArg()); break;
+            case "acc": this.unAcc(this.s.getArg()); break;
+            case "nop": this.unNop(this.s.getArg()); break;
+        }
+    }
+
+    private void flipCommand() {
+        String instruction = "";
+        switch (this.s.getInstruction()) {
+            case "jmp": instruction = "nop"; break;
+            case "nop": instruction = "jmp"; break;
+            case "acc": instruction = "acc"; break;
+        }
+        this.s.setInstruction(instruction);
+    }
+
+    private void runInstruction() {
+        switch (this.s.getInstruction()) {
+            case "jmp": this.jmp(this.s.getArg()); break;
+            case "acc": this.acc(this.s.getArg()); break;
+            case "nop": this.nop(this.s.getArg()); break;
+        }
     }
 
     public static void main( String[] args ) {
@@ -108,20 +160,21 @@ public class Day8 {
         ArrayList<String> input = getInput();
         int i = 0;
         int cmd = 0;
-        int arg = 0;
-        while (! d.isCycle() && i < 1000) {
-            String[] line = input.get(cmd).split(" ");
-            String instruction = line[0];
-            arg = Integer.parseInt(line[1]);
-            switch (instruction) {
-                case "jmp": d.jmp(arg); break;
-                case "acc": d.acc(arg); break;
-                case "nop": d.nop(arg); break;
+        while (cmd < input.size() && i < 1000000) {
+            if (! d.isCycle()) {
+                String[] line = input.get(cmd).split(" ");
+                d.s.setInstruction(line[0]);
+                d.s.setArg(Integer.parseInt(line[1]));
+                d.runInstruction();
+                System.out.println( cmd );
+                System.out.println( input.get(cmd) );
+                i += 1;
+                cmd = d.s.getCmd();
+            } {
+                d.rewind();
+                d.flipCommand();
+                d.runInstruction();
             }
-            System.out.println( cmd );
-            System.out.println( input.get(cmd) );
-            i += 1;
-            cmd = d.s.getCmd();
         }
         System.out.println(d.s.getAcc());
     }
