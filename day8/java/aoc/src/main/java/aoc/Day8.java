@@ -46,7 +46,6 @@ public class Day8 {
 
         public State setCmd(int n) {
             this.cmd = n;
-            this.cmds.add(n);
             return this;
         }
 
@@ -90,7 +89,7 @@ public class Day8 {
     public State s;
     private static ArrayList<String> getInput() {
         String[] ss = readFile("/tmp/aoc8").split("\n");
-        // String[] ss = {"nop +4", "acc +2", "jmp -1", "jump -2", "acc +10"};
+        // String[] ss = {"nop +4", "acc +2", "jmp -1", "jmp -2", "acc +10"};
         ArrayList<String> input = new ArrayList();
         int i;
         for (i = 0; i < ss.length; i += 1) {
@@ -129,7 +128,7 @@ public class Day8 {
     private boolean isCycle() {
         ArrayList<Integer> cmds = this.s.getCmds();
         int cmd = this.s.getCmd();
-        return cmds.lastIndexOf(cmd) != (cmds.indexOf(cmd));
+        return cmds.indexOf(cmd) > -1;
     }
 
     private void unJmp(int i) {
@@ -148,15 +147,15 @@ public class Day8 {
     private void rewind() {
         System.out.println("rewind");
         ArrayList<Integer> cmds = this.s.getCmds();
-        System.out.println(cmds.toString());
-        cmds.remove(cmds.size() - 1);
-        System.out.println(cmds.toString());
-        // parseLine(s.getLine(cmds.get(cmds.size() - 1)));
+        parseLine(s.getLine(cmds.get(cmds.size() - 1)));
+        // System.out.println(cmds.toString());
+        // System.out.println(cmds.toString());
         switch (this.s.getInstruction()) {
             case "jmp": this.unJmp(this.s.getArg()); break;
             case "acc": this.unAcc(this.s.getArg()); break;
             case "nop": this.unNop(this.s.getArg()); break;
         }
+        cmds.remove(cmds.size() - 1);
     }
 
     private void parseLine(String[] line) {
@@ -165,6 +164,7 @@ public class Day8 {
     }
 
     private void flipCommand() {
+        System.out.println("flip");
         String instruction = "";
         switch (this.s.getInstruction()) {
             case "jmp": instruction = "nop"; break;
@@ -174,7 +174,38 @@ public class Day8 {
         this.s.setInstruction(instruction);
     }
 
+    private void undoFlip() {
+        ArrayList<Integer> cmds = s.getCmds();
+        parseLine(s.getLine(cmds.get(cmds.size() - 1)));
+        // System.out.println("undoflip " + new Integer(s.getCmd()).toString());
+        System.out.println("undoflip");
+        // System.out.println(s.getCmds().toString());
+        // System.out.println(s.getInstruction());
+        // System.out.println(s.getArg());
+        flipCommand();
+        // d.runInstruction();
+        // System.out.println("rundo: " + s.getInstruction() + " " + new Integer(s.getArg()).toString());
+        // System.out.println("~~~~~~~~~~~~~~~ cmd ~~~~~~~~ " + s.getCmd());
+        switch (this.s.getInstruction()) {
+            case "jmp": unJmp(s.getArg()); break;
+            case "acc": unAcc(s.getArg()); break;
+            case "nop": unNop(s.getArg()); break;
+        }
+        // System.out.println("~~~~~~~~~~~~~~~ cmd ~~~~~~~~ " + s.getCmd());
+        cmds.remove(cmds.size() - 1);
+        // System.out.println(s.getCmds().toString());
+        s.setCheckpoint(-1);
+        int cmd = s.getCmd();
+        // parseLine(s.getLine(cmd));
+        parseLine(s.getLine(cmds.get(cmds.size() - 1)));
+        // System.out.println(s.getInstruction());
+        // System.out.println(s.getArg());
+        // System.out.println("undoFlip end ###########################################");
+    }
+
     private void runInstruction() {
+        // System.out.println("runInstruction!!");
+        System.out.println(String.format("%1$s %2$s", this.s.getInstruction(), this.s.getArg()));
         switch (this.s.getInstruction()) {
             case "jmp": this.jmp(this.s.getArg()); break;
             case "acc": this.acc(this.s.getArg()); break;
@@ -189,22 +220,26 @@ public class Day8 {
         int i = 0;
         int cmd = 0;
         d.s.setCmd(cmd);
-        while (cmd < d.s.getInputSize() && i < 1000000) {
+        d.parseLine(d.s.getLine(cmd));
+        while (cmd < d.s.getInputSize() && i < 10) {
 
-            System.out.println("##################### START #################");
-            System.out.println(String.format("i %1$s", i));
-            System.out.println(String.format("cmds %1$s", d.s.getCmds().toString()));
-            System.out.println(String.format("cmd %1$s", cmd));
-            System.out.println(String.format("line %1$s %2$s", d.s.getInstruction(), d.s.getArg()));
-            System.out.println(String.format("checkpoint %1$s", d.s.getCheckpoint()));
-            System.out.println(String.format("acc %1$s", d.s.getAcc()));
-            System.out.println("##################### END #################");
+            // System.out.println("##################### START #################");
+            // System.out.println(String.format("i %1$s", i));
+            // System.out.println(String.format("cmds %1$s", d.s.getCmds().toString()));
+            // System.out.println(String.format("cmd %1$s", cmd));
+            // // System.out.println(String.format("line %1$s %2$s", d.s.getInstruction(), d.s.getArg()));
+            // System.out.println(String.format("checkpoint %1$s", d.s.getCheckpoint()));
+            // System.out.println(String.format("acc %1$s", d.s.getAcc()));
+            // System.out.println("##################### END #################");
 
             if (! d.isCycle()) {
-                d.parseLine(d.s.getLine(cmd));
+                d.s.getCmds().add(d.s.getCmd());
                 d.runInstruction();
                 i += 1;
                 cmd = d.s.getCmd();
+                if (cmd != d.s.getInputSize()) {
+                    d.parseLine(d.s.getLine(cmd));
+                }
             } else {
                 System.out.println("cycle");
                 // flip fails, rewind until last flip
@@ -219,19 +254,27 @@ public class Day8 {
                         cmd = d.s.getCmd();
                         d.parseLine(d.s.getLine(cmd));
                     }
-                    d.flipCommand();
-                    d.s.setCheckpoint(-1);
-                }
-                while (d.s.getInstruction() == "acc") {
+                    d.undoFlip();
+                } else {
+                    d.rewind(); // wtf
+                    cmd = d.s.getCmd();
+                    d.parseLine(d.s.getLine(cmd));
+                };
+                // System.out.println("CHECK FOR ACCS " + d.s.getInstruction());
+                while (d.s.getInstruction().equals("acc")) {
                     d.rewind();
                     cmd = d.s.getCmd();
                     d.parseLine(d.s.getLine(cmd));
                 }
                 // boundary here - rewinds then flip or flip then rewind
                 d.flipCommand();
-                d.s.setCheckpoint(d.s.getCmds().size() - 1);
+                d.s.setCheckpoint(d.s.getCmds().size());
+                d.s.getCmds().add(d.s.getCmd());
                 d.runInstruction();
                 cmd = d.s.getCmd();
+                if (cmd != d.s.getInputSize()) {
+                    d.parseLine(d.s.getLine(cmd));
+                }
                 i += 1;
             }
         }
