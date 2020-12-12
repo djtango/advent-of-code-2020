@@ -89,8 +89,8 @@ public class Day8 {
 
     public State s;
     private static ArrayList<String> getInput() {
-        // String[] ss = readFile("/tmp/aoc8").split("\n");
-        String[] ss = {"nop +4", "acc +2", "jmp -1", "jump -2", "acc +10"};
+        String[] ss = readFile("/tmp/aoc8").split("\n");
+        // String[] ss = {"nop +4", "acc +2", "jmp -1", "jump -2", "acc +10"};
         ArrayList<String> input = new ArrayList();
         int i;
         for (i = 0; i < ss.length; i += 1) {
@@ -151,6 +151,7 @@ public class Day8 {
         System.out.println(cmds.toString());
         cmds.remove(cmds.size() - 1);
         System.out.println(cmds.toString());
+        // parseLine(s.getLine(cmds.get(cmds.size() - 1)));
         switch (this.s.getInstruction()) {
             case "jmp": this.unJmp(this.s.getArg()); break;
             case "acc": this.unAcc(this.s.getArg()); break;
