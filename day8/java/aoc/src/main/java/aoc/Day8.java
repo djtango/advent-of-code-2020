@@ -18,13 +18,13 @@ public class Day8 {
         public ArrayList<Integer> cmds;
         public ArrayList<String> input;
         public State() {
-            this.instruction = "";
-            this.arg = 0;
-            this.acc = 0;
-            this.cmd = 0;
-            this.checkpoint = -1;
-            this.cmds = new ArrayList<Integer>();
-            this.input = new ArrayList<String>();
+            instruction = "";
+            arg = 0;
+            acc = 0;
+            cmd = 0;
+            checkpoint = -1;
+            cmds = new ArrayList<Integer>();
+            input = new ArrayList<String>();
         }
 
         public void setInput(ArrayList<String> input) {
@@ -32,7 +32,7 @@ public class Day8 {
         }
 
         public int getInputSize() {
-            return this.input.size();
+            return input.size();
         }
 
         public String[] getLine(int n) {
@@ -40,33 +40,33 @@ public class Day8 {
         }
 
         public State setAcc(int n) {
-            this.acc = n;
+            acc = n;
             return this;
         }
 
         public State setCmd(int n) {
-            this.cmd = n;
+            cmd = n;
             return this;
         }
 
         public int getAcc() {
-            return this.acc;
+            return acc;
         }
 
         public ArrayList<Integer> getCmds() {
-            return this.cmds;
+            return cmds;
         }
 
         public int getCmd() {
-            return this.cmd;
+            return cmd;
         }
 
         public String getInstruction() {
-            return this.instruction;
+            return instruction;
         }
 
         public int getArg() {
-            return this.arg;
+            return arg;
         }
 
         public void setInstruction(String instruction) {
@@ -78,18 +78,26 @@ public class Day8 {
         }
 
         public int getCheckpoint() {
-            return this.checkpoint;
+            return checkpoint;
         }
 
         public void setCheckpoint(int checkpoint) {
             this.checkpoint = checkpoint;
         }
+
+        public int getLastCmd() {
+            return cmds.get(cmds.size() - 1);
+        }
+
+        public void removeLastCmd() {
+            cmds.remove(cmds.size() - 1);
+        }
     }
 
     public State s;
     private static ArrayList<String> getInput() {
-        String[] ss = readFile("/tmp/aoc8").split("\n");
-        // String[] ss = {"nop +4", "acc +2", "jmp -1", "jmp -2", "acc +10"};
+        // String[] ss = readFile("/tmp/aoc8").split("\n");
+        String[] ss = {"nop +4", "acc +2", "jmp -1", "jmp -2", "acc +10"};
         ArrayList<String> input = new ArrayList();
         int i;
         for (i = 0; i < ss.length; i += 1) {
@@ -146,16 +154,13 @@ public class Day8 {
 
     private void rewind() {
         System.out.println("rewind");
-        ArrayList<Integer> cmds = this.s.getCmds();
-        parseLine(s.getLine(cmds.get(cmds.size() - 1)));
-        // System.out.println(cmds.toString());
-        // System.out.println(cmds.toString());
+        parseLine(s.getLine(s.getLastCmd()));
         switch (this.s.getInstruction()) {
             case "jmp": this.unJmp(this.s.getArg()); break;
             case "acc": this.unAcc(this.s.getArg()); break;
             case "nop": this.unNop(this.s.getArg()); break;
         }
-        cmds.remove(cmds.size() - 1);
+        s.removeLastCmd();
     }
 
     private void parseLine(String[] line) {
@@ -175,36 +180,20 @@ public class Day8 {
     }
 
     private void undoFlip() {
-        ArrayList<Integer> cmds = s.getCmds();
-        parseLine(s.getLine(cmds.get(cmds.size() - 1)));
-        // System.out.println("undoflip " + new Integer(s.getCmd()).toString());
+        parseLine(s.getLine(s.getLastCmd()));
         System.out.println("undoflip");
-        // System.out.println(s.getCmds().toString());
-        // System.out.println(s.getInstruction());
-        // System.out.println(s.getArg());
         flipCommand();
-        // d.runInstruction();
-        // System.out.println("rundo: " + s.getInstruction() + " " + new Integer(s.getArg()).toString());
-        // System.out.println("~~~~~~~~~~~~~~~ cmd ~~~~~~~~ " + s.getCmd());
         switch (this.s.getInstruction()) {
             case "jmp": unJmp(s.getArg()); break;
             case "acc": unAcc(s.getArg()); break;
             case "nop": unNop(s.getArg()); break;
         }
-        // System.out.println("~~~~~~~~~~~~~~~ cmd ~~~~~~~~ " + s.getCmd());
-        cmds.remove(cmds.size() - 1);
-        // System.out.println(s.getCmds().toString());
+        s.removeLastCmd();
         s.setCheckpoint(-1);
-        int cmd = s.getCmd();
-        // parseLine(s.getLine(cmd));
-        parseLine(s.getLine(cmds.get(cmds.size() - 1)));
-        // System.out.println(s.getInstruction());
-        // System.out.println(s.getArg());
-        // System.out.println("undoFlip end ###########################################");
+        parseLine(s.getLine(s.getLastCmd()));
     }
 
     private void runInstruction() {
-        // System.out.println("runInstruction!!");
         System.out.println(String.format("%1$s %2$s", this.s.getInstruction(), this.s.getArg()));
         switch (this.s.getInstruction()) {
             case "jmp": this.jmp(this.s.getArg()); break;
@@ -233,6 +222,7 @@ public class Day8 {
             // System.out.println("##################### END #################");
 
             if (! d.isCycle()) {
+                // world's most convoluted DFS algorithm
                 d.s.getCmds().add(d.s.getCmd());
                 d.runInstruction();
                 i += 1;
@@ -242,11 +232,6 @@ public class Day8 {
                 }
             } else {
                 System.out.println("cycle");
-                // flip fails, rewind until last flip
-                // undoflip
-                // rewind until next jmp or nop
-                // flip
-                // go
                 int j;
                 if (d.s.getCheckpoint() != -1) {
                     for (j = d.s.getCmds().size() - 1; j > d.s.getCheckpoint(); j -= 1) {
@@ -260,13 +245,11 @@ public class Day8 {
                     cmd = d.s.getCmd();
                     d.parseLine(d.s.getLine(cmd));
                 };
-                // System.out.println("CHECK FOR ACCS " + d.s.getInstruction());
                 while (d.s.getInstruction().equals("acc")) {
                     d.rewind();
                     cmd = d.s.getCmd();
                     d.parseLine(d.s.getLine(cmd));
                 }
-                // boundary here - rewinds then flip or flip then rewind
                 d.flipCommand();
                 d.s.setCheckpoint(d.s.getCmds().size());
                 d.s.getCmds().add(d.s.getCmd());
