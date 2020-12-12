@@ -16,13 +16,27 @@ public class Day8 {
         public int checkpoint;
         public String instruction;
         public ArrayList<Integer> cmds;
+        public ArrayList<String> input;
         public State() {
             this.instruction = "";
             this.arg = 0;
             this.acc = 0;
             this.cmd = 0;
             this.checkpoint = -1;
-            this.cmds = new ArrayList();
+            this.cmds = new ArrayList<Integer>();
+            this.input = new ArrayList<String>();
+        }
+
+        public void setInput(ArrayList<String> input) {
+            this.input = input;
+        }
+
+        public int getInputSize() {
+            return this.input.size();
+        }
+
+        public String[] getLine(int n) {
+            return this.input.get(n).split(" ");
         }
 
         public State setAcc(int n) {
@@ -170,11 +184,11 @@ public class Day8 {
     public static void main( String[] args ) {
         Day8 d = new Day8();
         d.s = new State();
-        ArrayList<String> input = getInput();
+        d.s.setInput(getInput());
         int i = 0;
         int cmd = 0;
         d.s.setCmd(cmd);
-        while (cmd < input.size() && i < 1000000) {
+        while (cmd < d.s.getInputSize() && i < 1000000) {
 
             System.out.println("##################### START #################");
             System.out.println(String.format("i %1$s", i));
@@ -186,8 +200,7 @@ public class Day8 {
             System.out.println("##################### END #################");
 
             if (! d.isCycle()) {
-                String[] line = input.get(cmd).split(" ");
-                d.parseLine(line);
+                d.parseLine(d.s.getLine(cmd));
                 d.runInstruction();
                 i += 1;
                 cmd = d.s.getCmd();
@@ -203,8 +216,7 @@ public class Day8 {
                     for (j = d.s.getCmds().size() - 1; j > d.s.getCheckpoint(); j -= 1) {
                         d.rewind();
                         cmd = d.s.getCmd();
-                        String[] line = input.get(cmd).split(" ");
-                        d.parseLine(line);
+                        d.parseLine(d.s.getLine(cmd));
                     }
                     d.flipCommand();
                     d.s.setCheckpoint(-1);
@@ -212,8 +224,7 @@ public class Day8 {
                 while (d.s.getInstruction() == "acc") {
                     d.rewind();
                     cmd = d.s.getCmd();
-                    String[] line = input.get(cmd).split(" ");
-                    d.parseLine(line);
+                    d.parseLine(d.s.getLine(cmd));
                 }
                 // boundary here - rewinds then flip or flip then rewind
                 d.flipCommand();
