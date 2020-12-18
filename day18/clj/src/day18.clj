@@ -14,20 +14,19 @@
         (nth x 0)
         (nth x 2)))
 
-(defn ->sexp [not-sexp]
-  (loop [xs not-sexp cnt 0]
+(defn flippity [not-sexp]
+  (loop [xs not-sexp]
     (let [[e1 op e2 & rst] xs]
-      (if (or (= 3 (count xs)) (> cnt 100))
+      (if (or (= 3 (count xs)))
         (flip xs)
         (recur (concat (list (list op e1 e2))
-                       rst)
-               (inc cnt))))))
+                       rst))))))
 
-(defn rearrange [line]
+(defn ->sexp [line]
   (walk/postwalk
     (fn [x]
       (if (seq? x)
-        (->sexp x)
+        (flippity x)
         x))
     line))
 
@@ -71,7 +70,7 @@
 (defn part1 []
   (->> (get-input)
        parse-input
-       (map rearrange)
+       (map ->sexp)
        (map eval)
        (reduce +)))
 
@@ -79,6 +78,6 @@
   (->> (get-input)
        parse-input
        (map order-precedence)
-       (map rearrange)
+       (map ->sexp)
        (map eval)
        (reduce +)))
