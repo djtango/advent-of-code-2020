@@ -32,10 +32,47 @@ describe('crossProduct', () => {
   });
 });
 
+describe('product', () => {
+  it('computes the product of an array of numbers', () => {
+    var input = [3, 4, 5];
+    var expected = 3 * 4 * 5;
+    assert.equal(sut.product(input), expected);
+  });
+});
+
+describe('tripleProduct', () => {
+  it('computes the combinations of triplets for an array, without the diagonal', () => {
+    var input = [1, 2, 3, 4];
+    var expected = [
+      [1, 2, 3], [1, 2, 4],
+      [1, 3, 2], [1, 3, 4],
+      [1, 4, 2], [1, 4, 3],
+      [2, 1, 3], [2, 1, 4],
+      [2, 3, 1], [2, 3, 4],
+      [2, 4, 1], [2, 4, 3],
+      [3, 1, 2], [3, 1, 4],
+      [3, 2, 1], [3, 2, 4],
+      [3, 4, 1], [3, 4, 2],
+      [4, 1, 2], [4, 1, 3],
+      [4, 2, 1], [4, 2, 3],
+      [4, 3, 1], [4, 3, 2]
+    ];
+    assert.deepStrictEqual(sut.tripleProduct(input), expected);
+  });
+});
+
 describe('part1', () => {
   it('finds the pair of numbers that sums to 2020 and multiplies them', () => {
     var input = "1\n1009\n1011\n2\n3";
     var expected = 1009 * 1011;
     assert.equal(sut.part1(input), expected);
+  });
+});
+
+describe('part2', () => {
+  it('finds the triple of numbers that sums to 2020 and multiplies them', () => {
+    var input = "2\n1008\n1009\n1011\n3";
+    var expected = 3 * 1008 * 1009;
+    assert.equal(sut.part2(input), expected);
   });
 });
