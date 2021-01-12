@@ -8,3 +8,4 @@
 **/.classpath
 **/*.o
 **/*.hi
+**/node_modules
